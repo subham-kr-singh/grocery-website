@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | QuickGrab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2d6a4f',
+                        'primary-light': '#40916c',
+                        accent: '#d8f3dc'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-basket text-3xl text-primary"></i>
+                    <a href="index.html" class="brand-font font-bold text-2xl text-gray-900">Quick<span class="text-primary">Grab</span></a>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Shop</a>
+                    <a href="#" onclick="AuthAPI.logout()" class="text-sm font-medium text-red-600 hover:text-red-700 transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8 brand-font">Order History</h1>
+
+        <div id="orders-container" class="space-y-6">
+            <!-- Loading Skeletons -->
+            <div class="animate-pulse bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex justify-between mb-4">
+                    <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+                    <div class="h-6 bg-gray-200 rounded-full w-24"></div>
+                </div>
+                <div class="h-20 bg-gray-100 rounded-lg mb-4"></div>
+                <div class="flex justify-end">
+                    <div class="h-6 bg-gray-200 rounded w-32"></div>
+                </div>
+            </div>
+            <!-- Orders injected here -->
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = AuthAPI.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const container = document.getElementById('orders-container');
+
+            try {
+                const response = await OrdersAPI.getMyOrders();
+                const orders = response.data || response;
+                
+                renderOrders(orders, container);
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-2xl border border-red-100">
+                        <i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i>
+                        <p class="text-red-600 font-medium">Failed to load orders.</p>
+                        <p class="text-sm text-red-400 mt-1">${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+
+        function renderOrders(orders, container) {
+            if (!orders || orders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <i class="ph ph-package text-5xl text-gray-300 mb-4 inline-block"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-1">No orders yet</h3>
+                        <p class="text-gray-500 mb-6">Looks like you haven't placed any orders.</p>
+                        <a href="index.html" class="inline-flex items-center justify-center py-2 px-6 rounded-xl text-sm font-medium text-primary bg-accent hover:bg-primary hover:text-white transition-colors">Start Shopping</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort orders by date (newest first)
+            orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            let html = '';
+            orders.forEach((order, index) => {
+                const date = new Date(order.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit'
+                });
+                
+                let statusColor = 'bg-yellow-100 text-yellow-800 border-yellow-200'; // pending
+                if (order.status === 'preparing') statusColor = 'bg-blue-100 text-blue-800 border-blue-200';
+                if (order.status === 'ready') statusColor = 'bg-green-100 text-green-800 border-green-200';
+                if (order.status === 'collected') statusColor = 'bg-gray-100 text-gray-700 border-gray-200';
+
+                html += `
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 animate-fade-in" style="animation-delay: ${index * 100}ms">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Order ID</p>
+                                <p class="text-sm font-mono text-gray-900">${order._id}</p>
+                                <p class="text-xs text-gray-400 mt-1">${date}</p>
+                            </div>
+                            <div class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${statusColor}">
+                                ${order.status || 'Pending'}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-100">
+                            <ul class="divide-y divide-gray-200 text-sm">
+                                ${order.items.map(item => `
+                                    <li class="py-2 flex justify-between items-center">
+                                        <div class="flex items-center gap-3">
+                                            <span class="font-medium text-gray-900">${item.product?.name || 'Product'}</span>
+                                            <span class="text-gray-500">x${item.quantity}</span>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="flex justify-end items-center border-t border-gray-100 pt-4 mt-2">
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 mb-1">Total Amount</p>
+                                <p class="text-xl font-bold text-primary">$${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

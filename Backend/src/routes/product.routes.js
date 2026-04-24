@@ -5,13 +5,13 @@ const {
   roleMiddleware,
 } = require("../middleware/auth.middleware");
 
-// ── Example controller placeholders ──────────────────
-// Replace these with your real product controller imports
-const getProducts = (req, res) => res.json({ message: "Get all products" });
-const getProduct = (req, res) => res.json({ message: "Get single product" });
-const createProduct = (req, res) => res.json({ message: "Create product" });
-const updateProduct = (req, res) => res.json({ message: "Update product" });
-const deleteProduct = (req, res) => res.json({ message: "Delete product" });
+const {
+  getProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct
+} = require("../controllers/product.controller");
 
 // ── Public routes — anyone can browse products ────────
 router.get("/", getProducts);

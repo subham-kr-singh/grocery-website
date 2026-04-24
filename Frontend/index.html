@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickGrab | Fresh Groceries Delivered</title>
+    <meta name="description" content="Shop fresh groceries online with QuickGrab">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2d6a4f',
+                        'primary-light': '#40916c',
+                        accent: '#d8f3dc'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-basket text-3xl text-primary"></i>
+                    <a href="index.html" class="brand-font font-bold text-2xl text-gray-900 tracking-tight">Quick<span class="text-primary">Grab</span></a>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-primary font-medium">Shop</a>
+                    <a href="orders.html" class="text-gray-600 hover:text-primary transition-colors font-medium">My Orders</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="cart.html" class="relative p-2 text-gray-600 hover:text-primary transition-colors">
+                        <i class="ph ph-shopping-cart text-2xl"></i>
+                        <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-500 rounded-full">0</span>
+                    </a>
+                    <div id="auth-section" class="flex gap-2">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-primary pt-20 pb-32 overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=2000" alt="Fresh Groceries" class="w-full h-full object-cover opacity-20">
+            <div class="absolute inset-0 bg-gradient-to-r from-primary to-transparent"></div>
+        </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="md:w-2/3 animate-fade-in stagger-1">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">Fresh Groceries,<br>Delivered Fast.</h1>
+                <p class="text-lg md:text-xl text-accent mb-8 max-w-xl">Shop from our wide selection of fresh produce, dairy, and everyday essentials. Quality guaranteed.</p>
+                <a href="#products" class="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-primary bg-white rounded-full hover:bg-accent hover:shadow-lg transition-all duration-300">
+                    Start Shopping <i class="ph ph-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="products" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full -mt-16 relative z-10">
+        
+        <div class="flex justify-between items-end mb-8 animate-fade-in stagger-2">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2 brand-font">Featured Products</h2>
+                <p class="text-gray-600">Discover our freshest arrivals</p>
+            </div>
+            
+            <div class="hidden sm:block">
+                <select id="category-filter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5 shadow-sm">
+                    <option value="all">All Categories</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Dairy">Dairy</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Snacks">Snacks</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Loading Skeletons -->
+            <div class="animate-pulse bg-white rounded-2xl p-4 shadow-sm border border-gray-100 h-80">
+                <div class="bg-gray-200 h-40 rounded-xl mb-4"></div>
+                <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div class="flex justify-between items-center mt-auto">
+                    <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+                    <div class="h-8 bg-gray-200 rounded-full w-8"></div>
+                </div>
+            </div>
+            <div class="animate-pulse bg-white rounded-2xl p-4 shadow-sm border border-gray-100 h-80">
+                <div class="bg-gray-200 h-40 rounded-xl mb-4"></div>
+                <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div class="flex justify-between items-center mt-auto">
+                    <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+                    <div class="h-8 bg-gray-200 rounded-full w-8"></div>
+                </div>
+            </div>
+            <!-- Products will be injected here -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 mb-4 md:mb-0">
+                    <i class="ph-fill ph-basket text-2xl text-primary"></i>
+                    <span class="brand-font font-bold text-xl text-gray-900">QuickGrab</span>
+                </div>
+                <p class="text-sm text-gray-500">&copy; 2026 QuickGrab. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Scripts -->
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateAuthUI();
+            updateCartCount();
+            
+            window.addEventListener('cartUpdated', updateCartCount);
+            
+            try {
+                const response = await ProductsAPI.getAll();
+                const products = response.data || response; // depending on your API structure
+                renderProducts(products);
+                
+                // Add category filter logic
+                document.getElementById('category-filter').addEventListener('change', (e) => {
+                    const category = e.target.value;
+                    if(category === 'all') {
+                        renderProducts(products);
+                    } else {
+                        renderProducts(products.filter(p => p.category === category));
+                    }
+                });
+
+            } catch (error) {
+                document.getElementById('products-grid').innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-red-50 rounded-2xl border border-red-100">
+                        <i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i>
+                        <p class="text-red-600 font-medium">Failed to load products.</p>
+                        <p class="text-sm text-red-400 mt-1">Please ensure the backend server is running.</p>
+                    </div>
+                `;
+            }
+        });
+
+        function updateAuthUI() {
+            const user = AuthAPI.getCurrentUser();
+            const authSection = document.getElementById('auth-section');
+            
+            if (user) {
+                let adminLink = '';
+                if(user.role === 'admin') {
+                    adminLink = `<a href="admin.html" class="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full hover:bg-purple-100 transition-colors">Admin Dashboard</a>`;
+                }
+                
+                authSection.innerHTML = `
+                    ${adminLink}
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors p-2">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=2d6a4f&color=fff&rounded=true" class="w-8 h-8 rounded-full border border-gray-200">
+                            <span class="hidden md:block">${user.name.split(' ')[0]}</span>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 hidden group-hover:block transition-all z-50">
+                            <a href="#" onclick="AuthAPI.logout()" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="ph ph-sign-out mr-2"></i>Logout</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <a href="login.html" class="text-sm font-medium text-gray-700 hover:text-primary transition-colors px-3 py-2">Login</a>
+                    <a href="register.html" class="text-sm font-medium text-white bg-primary hover:bg-primary-light transition-colors px-4 py-2 rounded-full shadow-sm">Sign Up</a>
+                `;
+            }
+        }
+
+        function updateCartCount() {
+            const cart = CartLogic.getCart();
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            const badge = document.getElementById('cart-count');
+            badge.innerText = count;
+            if(count > 0) {
+                badge.classList.remove('hidden');
+                badge.classList.add('animate-bounce');
+                setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            if(!products || products.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="ph ph-package text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500">No products found.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            products.forEach((product, index) => {
+                const imgUrl = product.imageURL || `https://source.unsplash.com/400x300/?${product.category.toLowerCase()}`;
+                const inStock = product.stockQuantity > 0 && product.isAvailable;
+                const delay = (index % 4) * 100;
+                
+                const card = document.createElement('div');
+                card.className = `product-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col h-full animate-fade-in relative group`;
+                card.style.animationDelay = `${delay}ms`;
+                
+                card.innerHTML = `
+                    <div class="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-gray-50">
+                        <img src="${imgUrl}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'">
+                        <div class="absolute top-2 left-2 px-2 py-1 bg-white/90 backdrop-blur-sm rounded text-xs font-bold text-gray-700 shadow-sm uppercase tracking-wider">
+                            ${product.category}
+                        </div>
+                        ${!inStock ? `<div class="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+                            <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">Out of Stock</span>
+                        </div>` : ''}
+                    </div>
+                    
+                    <h3 class="text-lg font-bold text-gray-900 mb-1 leading-tight">${product.name}</h3>
+                    
+                    <div class="mt-auto flex items-center justify-between pt-4">
+                        <div class="text-xl font-bold text-primary">$${product.price.toFixed(2)}</div>
+                        <button 
+                            onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")})'
+                            ${!inStock ? 'disabled' : ''} 
+                            class="w-10 h-10 rounded-full flex items-center justify-center ${inStock ? 'bg-primary text-white hover:bg-primary-light hover:shadow-md hover:scale-105 cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'} transition-all active:scale-95">
+                            <i class="ph ph-plus font-bold text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCart(product) {
+            CartLogic.addToCart(product);
+            
+            // Show toast
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-fade-in z-50';
+            toast.innerHTML = `
+                <div class="bg-green-500 rounded-full p-1"><i class="ph ph-check text-white"></i></div>
+                <div>
+                    <p class="text-sm font-medium">Added to cart</p>
+                    <p class="text-xs text-gray-300">${product.name}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

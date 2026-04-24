@@ -1,18 +1,19 @@
 const express = require("express");
-const json = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const cookies = require("cookie-parser")
-
 const router = express.Router();
+const {
+  register,
+  login,
+  logout,
+  me,
+} = require("../controllers/auth.controller");
+const { authMiddleware } = require("../middleware/auth.middleware");
 
-const authController = require("../controllers/auth.controller");
+// Public routes
+router.post("/register", register);
+router.post("/login", login);
 
-router.post("/register", authController.register);
-
-router.post("/login", authController.login);
-
-router.post("/logout", authController.logout);
-
-router.get("/me", authController.me);
+// Private routes — must be logged in
+router.post("/logout", authMiddleware, logout);
+router.get("/me", authMiddleware, me);
 
 module.exports = router;

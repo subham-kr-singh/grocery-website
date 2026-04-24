@@ -5,8 +5,9 @@ const cors = require("cors");
 const morgan = require("morgan");
 require("dotenv").config(); // must be first before anything reads process.env
 
-const authRoutes = require("./routes/auth.routes");
-const productRoutes = require("./routes/product.routes");
+const authRoutes = require("./src/routes/auth.routes");
+const productRoutes = require("./src/routes/product.routes");
+const orderRoutes = require("./src/routes/order.routes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(morgan("dev")); // logs every request in terminal
 // ── Routes ────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────
 app.use((req, res) => {
