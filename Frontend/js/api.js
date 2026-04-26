@@ -14,6 +14,7 @@ async function apiFetch(endpoint, options = {}) {
 
     const config = {
         ...options,
+        credentials: 'include', // ✅ send cookies with every request
         headers: {
             ...defaultHeaders,
             ...options.headers,
