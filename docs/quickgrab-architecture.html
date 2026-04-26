@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickGrab — System Architecture</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+      --green-deep: #1a472a;
+      --green-mid: #2d6a4f;
+      --green-bright: #40916c;
+      --green-light: #74c69d;
+      --mint: #b7e4c7;
+      --mint-pale: #d8f3dc;
+      --cream: #f8faf9;
+      --charcoal: #1a1a2e;
+      --grey: #6b7280;
+      --white: #ffffff;
+      --customer: #2563eb;
+      --customer-light: #dbeafe;
+      --admin: #7c3aed;
+      --admin-light: #ede9fe;
+      --backend: #2d6a4f;
+      --backend-light: #d8f3dc;
+      --db: #b45309;
+      --db-light: #fef3c7;
+      --realtime: #dc2626;
+      --realtime-light: #fee2e2;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0d1117;
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(45, 106, 79, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45, 106, 79, 0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 56px;
+      animation: fadeDown 0.8s ease both;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(45, 106, 79, 0.2);
+      border: 1px solid rgba(116, 198, 157, 0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      margin-bottom: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--green-light);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .logo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--green-light);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, var(--green-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.45);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    /* Main diagram */
+    .diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    /* Layer */
+    .layer {
+      position: relative;
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 0;
+    }
+
+    .layer-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.2);
+      min-width: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .layer-content {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      padding: 20px 0;
+    }
+
+    /* Connector arrows between layers */
+    .connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+      gap: 40px;
+      position: relative;
+    }
+
+    .arrow-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .arrow-line {
+      width: 2px;
+      height: 28px;
+      background: linear-gradient(to bottom, rgba(116, 198, 157, 0.6), rgba(116, 198, 157, 0.1));
+      position: relative;
+    }
+
+    .arrow-line::after {
+      content: '▼';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      color: var(--green-light);
+      opacity: 0.7;
+    }
+
+    .arrow-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .connector-row {
+      display: flex;
+      justify-content: space-around;
+      padding: 0 36px;
+    }
+
+    /* Cards */
+    .card {
+      flex: 1;
+      border-radius: 14px;
+      padding: 18px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      cursor: default;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+      border-radius: 14px;
+    }
+
+    .card.customer {
+      background: rgba(37, 99, 235, 0.1);
+      border-color: rgba(37, 99, 235, 0.25);
+    }
+
+    .card.customer::before {
+      background: var(--customer);
+    }
+
+    .card.admin {
+      background: rgba(124, 58, 237, 0.1);
+      border-color: rgba(124, 58, 237, 0.25);
+    }
+
+    .card.admin::before {
+      background: var(--admin);
+    }
+
+    .card.backend {
+      background: rgba(45, 106, 79, 0.15);
+      border-color: rgba(116, 198, 157, 0.25);
+    }
+
+    .card.backend::before {
+      background: var(--backend);
+    }
+
+    .card.db {
+      background: rgba(180, 83, 9, 0.12);
+      border-color: rgba(180, 83, 9, 0.3);
+    }
+
+    .card.db::before {
+      background: var(--db);
+    }
+
+    .card.realtime {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.25);
+    }
+
+    .card.realtime::before {
+      background: var(--realtime);
+    }
+
+    .card.middleware {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .card-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    .card.customer .card-title {
+      color: #93c5fd;
+    }
+
+    .card.admin .card-title {
+      color: #c4b5fd;
+    }
+
+    .card.backend .card-title {
+      color: var(--green-light);
+    }
+
+    .card.db .card-title {
+      color: #fcd34d;
+    }
+
+    .card.realtime .card-title {
+      color: #fca5a5;
+    }
+
+    .card.middleware .card-title {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .card-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-items li {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.5;
+    }
+
+    .card-items li::before {
+      content: '—';
+      opacity: 0.4;
+      flex-shrink: 0;
+    }
+
+    /* Flow section */
+    .flow-section {
+      margin-top: 48px;
+      animation: fadeUp 0.8s 0.5s ease both;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 20px;
+      padding-left: 4px;
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .flow-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layer-content {
+        flex-wrap: wrap;
+      }
+    }
+
+    .flow-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .flow-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-title-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 24px;
+      width: 1px;
+      height: calc(100% - 4px);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      flex-shrink: 0;
+      margin-top: 2px;
+      border: 1px solid currentColor;
+    }
+
+    .step-content {
+      padding-bottom: 14px;
+    }
+
+    .step-action {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2px;
+      line-height: 1.4;
+    }
+
+    .step-detail {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.3);
+      line-height: 1.5;
+    }
+
+    /* Status flow */
+    .status-flow {
+      margin-top: 16px;
+      animation: fadeUp 0.8s 0.6s ease both;
+    }
+
+    .status-track {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+    }
+
+    .status-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 100px;
+    }
+
+    .status-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.5);
+      text-align: center;
+    }
+
+    .status-who {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.25);
+      text-align: center;
+    }
+
+    .status-arrow {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, rgba(116, 198, 157, 0.4), rgba(116, 198, 157, 0.1));
+      min-width: 20px;
+      position: relative;
+    }
+
+    .status-arrow::after {
+      content: '›';
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--green-light);
+      opacity: 0.5;
+      font-size: 14px;
+    }
+
+    /* Tech stack row */
+    .tech-row {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.8s 0.7s ease both;
+    }
+
+    .tech-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tech-pill-icon {
+      font-size: 16px;
+    }
+
+    .tech-pill-info {}
+
+    .tech-pill-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tech-pill-role {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-badge">
+        <div class="logo-dot"></div>
+        QuickGrab System Architecture
+      </div>
+      <h1>How Everything Works Together</h1>
+      <p class="subtitle">MEN Stack — MongoDB · Express.js · Node.js · Vanilla JS Frontend</p>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#3b82f6;"></div>Customer
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#8b5cf6;"></div>Admin
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#40916c;"></div>Backend / API
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#d97706;"></div>Database
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#ef4444;"></div>Real-Time
+      </div>
+    </div>
+
+    <!-- Diagram -->
+    <div class="diagram">
+
+      <!-- Layer 1: Users -->
+      <div class="layer">
+        <div class="layer-label">Users</div>
+        <div class="layer-content">
+          <div class="card customer">
+            <span class="card-icon">🛒</span>
+            <div class="card-title">Customer Browser</div>
+            <ul class="card-items">
+              <li>HTML/CSS/JS pages</li>
+              <li>Browse & search products</li>
+              <li>Add items to cart</li>
+              <li>Place takeaway order</li>
+              <li>Track order status</li>
+            </ul>
+          </div>
+          <div class="card admin">
+            <span class="card-icon">🏪</span>
+            <div class="card-title">Admin Browser</div>
+            <ul class="card-items">
+              <li>Admin dashboard HTML</li>
+              <li>Manage products</li>
+              <li>View all orders</li>
+              <li>Update order status</li>
+              <li>Protected by role check</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 1 -->
+      <div class="connector-row">
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">fetch() HTTP Request + JWT Token</div>
+        </div>
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">fetch() HTTP Request + JWT Token</div>
+        </div>
+      </div>
+
+      <!-- Layer 2: Middleware -->
+      <div class="layer">
+        <div class="layer-label">Security</div>
+        <div class="layer-content">
+          <div class="card middleware">
+            <span class="card-icon">🔐</span>
+            <div class="card-title">Auth Middleware</div>
+            <ul class="card-items">
+              <li>Verify JWT token on every request</li>
+              <li>Decode user ID and role</li>
+              <li>Reject expired or invalid tokens</li>
+            </ul>
+          </div>
+          <div class="card middleware">
+            <span class="card-icon">🛡️</span>
+            <div class="card-title">Role Middleware</div>
+            <ul class="card-items">
+              <li>Check role = "admin" or "customer"</li>
+              <li>Block wrong role from wrong route</li>
+              <li>Return 403 if unauthorized</li>
+            </ul>
+          </div>
+          <div class="card middleware">
+            <span class="card-icon">🌐</span>
+            <div class="card-title">CORS Middleware</div>
+            <ul class="card-items">
+              <li>Allow browser to call API</li>
+              <li>Whitelist frontend origin</li>
+              <li>Handle preflight requests</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 2 -->
+      <div class="connector-row">
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Validated request passes through</div>
+        </div>
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Validated request passes through</div>
+        </div>
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Validated request passes through</div>
+        </div>
+      </div>
+
+      <!-- Layer 3: Routes & Controllers -->
+      <div class="layer">
+        <div class="layer-label">API</div>
+        <div class="layer-content">
+          <div class="card backend">
+            <span class="card-icon">🔑</span>
+            <div class="card-title">Auth Routes</div>
+            <ul class="card-items">
+              <li>POST /api/auth/register</li>
+              <li>POST /api/auth/login</li>
+              <li>bcrypt password hash</li>
+              <li>Return JWT token + role</li>
+            </ul>
+          </div>
+          <div class="card backend">
+            <span class="card-icon">🥦</span>
+            <div class="card-title">Product Routes</div>
+            <ul class="card-items">
+              <li>GET /api/products</li>
+              <li>GET /api/products/:id</li>
+              <li>POST /api/products (Admin)</li>
+              <li>PUT /api/products/:id (Admin)</li>
+              <li>DELETE /api/products/:id (Admin)</li>
+            </ul>
+          </div>
+          <div class="card backend">
+            <span class="card-icon">📦</span>
+            <div class="card-title">Order Routes</div>
+            <ul class="card-items">
+              <li>POST /api/orders</li>
+              <li>GET /api/orders/my</li>
+              <li>GET /api/orders (Admin)</li>
+              <li>PUT /api/orders/:id/status</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 3 -->
+      <div class="connector-row">
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Mongoose query</div>
+        </div>
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Mongoose query</div>
+        </div>
+        <div class="arrow-group">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Mongoose query + Socket.io emit</div>
+        </div>
+      </div>
+
+      <!-- Layer 4: Database + Realtime -->
+      <div class="layer">
+        <div class="layer-label">Data</div>
+        <div class="layer-content">
+          <div class="card db">
+            <span class="card-icon">🗄️</span>
+            <div class="card-title">MongoDB — Users</div>
+            <ul class="card-items">
+              <li>_id, name, email</li>
+              <li>passwordHash (bcrypt)</li>
+              <li>role: customer | admin</li>
+              <li>createdAt</li>
+            </ul>
+          </div>
+          <div class="card db">
+            <span class="card-icon">🥕</span>
+            <div class="card-title">MongoDB — Products</div>
+            <ul class="card-items">
+              <li>name, category, price</li>
+              <li>stockQuantity, imageUrl</li>
+              <li>isAvailable: true/false</li>
+              <li>updatedAt</li>
+            </ul>
+          </div>
+          <div class="card db">
+            <span class="card-icon">🧾</span>
+            <div class="card-title">MongoDB — Orders</div>
+            <ul class="card-items">
+              <li>customerId (ref: Users)</li>
+              <li>items[], totalAmount</li>
+              <li>status: pending/ready/collected</li>
+              <li>estimatedPickupTime</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow 4 - Realtime -->
+      <div class="connector-row">
+        <div class="arrow-group" style="grid-column: span 2;">
+          <div class="arrow-line"
+            style="background: linear-gradient(to bottom, rgba(220,38,38,0.6), rgba(220,38,38,0.1));"></div>
+          <div class="arrow-label" style="color: rgba(252,165,165,0.5);">Socket.io event OR polling response back to
+            browser</div>
+        </div>
+      </div>
+
+      <!-- Layer 5: Realtime -->
+      <div class="layer">
+        <div class="layer-label">Live</div>
+        <div class="layer-content">
+          <div class="card realtime" style="flex: 2;">
+            <span class="card-icon">⚡</span>
+            <div class="card-title">Real-Time Order Tracking</div>
+            <ul class="card-items" style="display:grid; grid-template-columns:1fr 1fr; gap: 4px 20px;">
+              <li>Polling every 10 seconds (simple)</li>
+              <li>Socket.io live push (advanced)</li>
+              <li>Admin marks order "Ready"</li>
+              <li>Customer badge updates instantly</li>
+              <li>Status: Pending → Ready → Collected</li>
+              <li>clearInterval() when order is ready</li>
+            </ul>
+          </div>
+          <div class="card middleware" style="flex: 1;">
+            <span class="card-icon">🔔</span>
+            <div class="card-title">Notification</div>
+            <ul class="card-items">
+              <li>"Your order is Ready!"</li>
+              <li>Green badge on UI</li>
+              <li>Estimated pickup time</li>
+              <li>Browser notification API</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Order Status Flow -->
+    <div class="status-flow" style="margin-top:48px;">
+      <div class="section-title">Order Status Journey</div>
+      <div class="status-track">
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(37,99,235,0.15); border-color:rgba(37,99,235,0.3);">🛒
+          </div>
+          <div class="status-name">Cart</div>
+          <div class="status-who">Customer</div>
+        </div>
+        <div class="status-arrow"></div>
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(234,179,8,0.15); border-color:rgba(234,179,8,0.3);">📋
+          </div>
+          <div class="status-name">Pending</div>
+          <div class="status-who">Order placed</div>
+        </div>
+        <div class="status-arrow"></div>
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(249,115,22,0.15); border-color:rgba(249,115,22,0.3);">
+            👨‍🍳</div>
+          <div class="status-name">Preparing</div>
+          <div class="status-who">Admin packs</div>
+        </div>
+        <div class="status-arrow"></div>
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(45,106,79,0.2); border-color:rgba(116,198,157,0.4);">✅
+          </div>
+          <div class="status-name">Ready</div>
+          <div class="status-who">Admin marks</div>
+        </div>
+        <div class="status-arrow"></div>
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.3);">💰
+          </div>
+          <div class="status-name">Pay & Collect</div>
+          <div class="status-who">At store</div>
+        </div>
+        <div class="status-arrow"></div>
+        <div class="status-node">
+          <div class="status-icon-wrap" style="background:rgba(107,114,128,0.15); border-color:rgba(107,114,128,0.3);">
+            🏁</div>
+          <div class="status-name">Collected</div>
+          <div class="status-who">Done</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Flows -->
+    <div class="flow-section">
+      <div class="section-title">Key User Flows</div>
+      <div class="flow-grid">
+
+        <div class="flow-card">
+          <div class="flow-title">
+            <div class="flow-title-dot" style="background:#3b82f6;"></div>
+            Customer Orders
+          </div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="step-num" style="color:#3b82f6; border-color:#3b82f660;">1</div>
+              <div class="step-content">
+                <div class="step-action">Register / Login</div>
+                <div class="step-detail">POST /auth/login → JWT token stored in localStorage</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#3b82f6; border-color:#3b82f660;">2</div>
+              <div class="step-content">
+                <div class="step-action">Browse Products</div>
+                <div class="step-detail">GET /api/products → rendered as cards in HTML</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#3b82f6; border-color:#3b82f660;">3</div>
+              <div class="step-content">
+                <div class="step-action">Add to Cart</div>
+                <div class="step-detail">Cart saved in localStorage (no API call yet)</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#3b82f6; border-color:#3b82f660;">4</div>
+              <div class="step-content">
+                <div class="step-action">Place Order</div>
+                <div class="step-detail">POST /api/orders → status: pending in MongoDB</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#3b82f6; border-color:#3b82f660;">5</div>
+              <div class="step-content">
+                <div class="step-action">Track Status</div>
+                <div class="step-detail">Poll every 10s → badge updates when Ready</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-card">
+          <div class="flow-title">
+            <div class="flow-title-dot" style="background:#8b5cf6;"></div>
+            Admin Manages Orders
+          </div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="step-num" style="color:#8b5cf6; border-color:#8b5cf660;">1</div>
+              <div class="step-content">
+                <div class="step-action">Admin Login</div>
+                <div class="step-detail">POST /auth/login → JWT has role: "admin"</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#8b5cf6; border-color:#8b5cf660;">2</div>
+              <div class="step-content">
+                <div class="step-action">View Orders Dashboard</div>
+                <div class="step-detail">GET /api/orders → all orders in a table</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#8b5cf6; border-color:#8b5cf660;">3</div>
+              <div class="step-content">
+                <div class="step-action">Manage Products</div>
+                <div class="step-detail">POST / PUT / DELETE /api/products</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#8b5cf6; border-color:#8b5cf660;">4</div>
+              <div class="step-content">
+                <div class="step-action">Mark Order Ready</div>
+                <div class="step-detail">PUT /api/orders/:id/status → emits Socket event</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="step-num" style="color:#8b5cf6; border-color:#8b5cf660;">5</div>
+              <div class="step-content">
+                <div class="step-action">Mark Collected</div>
+                <div class="step-detail">Order closed → status: collected in DB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tech Stack Pills -->
+    <div class="tech-row" style="margin-top:32px;">
+      <div class="section-title" style="width:100%; margin-bottom:12px;">Tech Stack</div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">🟩</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">Node.js</div>
+          <div class="tech-pill-role">Server Runtime</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">⚙️</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">Express.js</div>
+          <div class="tech-pill-role">REST API Framework</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">🍃</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">MongoDB</div>
+          <div class="tech-pill-role">Database</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">🔗</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">Mongoose</div>
+          <div class="tech-pill-role">ODM / Schema</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">🔑</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">JWT + bcrypt</div>
+          <div class="tech-pill-role">Auth & Security</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">⚡</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">Socket.io</div>
+          <div class="tech-pill-role">Real-Time Tracking</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon">🌐</div>
+        <div class="tech-pill-info">
+          <div class="tech-pill-name">HTML/CSS/JS</div>
+          <div class="tech-pill-role">Frontend (Vanilla)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>
