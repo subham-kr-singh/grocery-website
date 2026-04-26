@@ -1,202 +1,266 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Ultimate Admin Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ultimate Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body class="flex bg-gray-100">
+  <body class="flex bg-gray-100">
+    <!-- SIDEBAR -->
+    <div class="w-64 bg-gray-900 text-white min-h-screen p-5">
+      <h2 class="text-2xl font-bold mb-8">Sudhir General Store Admin</h2>
 
-<!-- SIDEBAR -->
-<div class="w-64 bg-gray-900 text-white min-h-screen p-5">
-    <h2 class="text-2xl font-bold mb-8">Sudhir General Store Admin</h2>
+      <button
+        onclick="showSection('dashboard')"
+        class="block mb-4 hover:text-green-400"
+      >
+        Dashboard
+      </button>
+      <button
+        onclick="showSection('orders')"
+        class="block mb-4 hover:text-green-400"
+      >
+        Orders
+      </button>
+      <button
+        onclick="showSection('products')"
+        class="block mb-4 hover:text-green-400"
+      >
+        Products
+      </button>
 
-    <button onclick="showSection('dashboard')" class="block mb-4 hover:text-green-400">Dashboard</button>
-    <button onclick="showSection('orders')" class="block mb-4 hover:text-green-400">Orders</button>
-    <button onclick="showSection('products')" class="block mb-4 hover:text-green-400">Products</button>
+      <button onclick="logout()" class="mt-10 text-red-400">Logout</button>
+    </div>
 
-    <button onclick="logout()" class="mt-10 text-red-400">Logout</button>
-</div>
+    <!-- MAIN -->
+    <div class="flex-1 p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+      </div>
 
-<!-- MAIN -->
-<div class="flex-1 p-6">
+      <!-- DASHBOARD -->
+      <div id="dashboard-section">
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Total Orders</h3>
+            <p id="totalOrders" class="text-xl font-bold"></p>
+          </div>
 
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">Admin Dashboard</h1>
-</div>
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Pending Orders</h3>
+            <p id="pendingOrders" class="text-xl font-bold"></p>
+          </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard-section">
-<div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Total Products</h3>
+            <p id="totalProducts" class="text-xl font-bold"></p>
+          </div>
+        </div>
+      </div>
 
-<div class="bg-white p-4 rounded shadow">
-    <h3>Total Orders</h3>
-    <p id="totalOrders" class="text-xl font-bold"></p>
-</div>
+      <!-- ORDERS -->
+      <div id="orders-section" class="hidden">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold">Orders</h2>
 
-<div class="bg-white p-4 rounded shadow">
-    <h3>Pending Orders</h3>
-    <p id="pendingOrders" class="text-xl font-bold"></p>
-</div>
+          <input
+            id="searchOrder"
+            placeholder="Search Order..."
+            class="border p-2 rounded"
+            oninput="loadOrders()"
+          />
+        </div>
 
-<div class="bg-white p-4 rounded shadow">
-    <h3>Total Products</h3>
-    <p id="totalProducts" class="text-xl font-bold"></p>
-</div>
+        <table class="w-full bg-white shadow rounded">
+          <thead class="bg-gray-200">
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>View</th>
+            </tr>
+          </thead>
 
-</div>
-</div>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
 
-<!-- ORDERS -->
-<div id="orders-section" class="hidden">
+      <!-- PRODUCTS -->
+      <div id="products-section" class="hidden">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold">Products</h2>
 
-<div class="flex justify-between mb-4">
-<h2 class="text-xl font-bold">Orders</h2>
+          <button
+            onclick="openModal()"
+            class="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            + Add Product
+          </button>
+        </div>
 
-<input id="searchOrder" placeholder="Search Order..." 
-class="border p-2 rounded" oninput="loadOrders()">
-</div>
+        <div id="products-grid" class="grid grid-cols-3 gap-4"></div>
+      </div>
+    </div>
 
-<table class="w-full bg-white shadow rounded">
-<thead class="bg-gray-200">
-<tr>
-<th>ID</th>
-<th>User</th>
-<th>Total</th>
-<th>Status</th>
-<th>View</th>
-</tr>
-</thead>
+    <!-- PRODUCT MODAL -->
+    <div
+      id="modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div class="bg-white p-6 rounded w-96">
+        <h2 class="font-bold mb-4">Add Product</h2>
 
-<tbody id="orders-tbody"></tbody>
-</table>
+        <input id="pname" placeholder="Name" class="border p-2 w-full mb-2" />
+        <input id="pprice" placeholder="Price" class="border p-2 w-full mb-2" />
+        <input
+          id="pcategory"
+          placeholder="Category"
+          class="border p-2 w-full mb-2"
+        />
+        <input
+          id="pimage"
+          placeholder="Image URL"
+          class="border p-2 w-full mb-2"
+        />
+        <input id="pstock" placeholder="Stock" class="border p-2 w-full mb-2" />
 
-</div>
+        <input
+          id="punit"
+          placeholder="Unit (kg, litre, piece, pack)"
+          class="border p-2 w-full mb-2"
+        />
 
-<!-- PRODUCTS -->
-<div id="products-section" class="hidden">
+        <div class="flex justify-between">
+          <button
+            onclick="addProduct()"
+            class="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Save
+          </button>
+          <button onclick="closeModal()" class="bg-gray-400 px-4 py-2 rounded">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
 
-<div class="flex justify-between mb-4">
-<h2 class="text-xl font-bold">Products</h2>
+    <!-- ORDER DETAILS MODAL -->
+    <div
+      id="orderModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+    >
+      <div class="bg-white p-6 rounded w-96">
+        <h2 class="font-bold mb-4">Order Details</h2>
 
-<button onclick="openModal()" class="bg-green-600 text-white px-4 py-2 rounded">
-+ Add Product
-</button>
-</div>
+        <div id="orderDetails"></div>
 
-<div id="products-grid" class="grid grid-cols-3 gap-4"></div>
+        <button
+          onclick="closeOrderModal()"
+          class="mt-4 bg-gray-400 px-4 py-2 rounded"
+        >
+          Close
+        </button>
+      </div>
+    </div>
 
-</div>
+    <script src="js/api.js"></script>
 
-</div>
+    <script>
+      // ✅ AUTH GUARD — redirect if not admin
+      (function () {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (!user || user.role !== "admin") {
+          window.location.replace("login.html");
+        }
+      })();
 
-<!-- PRODUCT MODAL -->
-<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-<div class="bg-white p-6 rounded w-96">
+      // NAVIGATION
+      function showSection(section) {
+        ["dashboard", "orders", "products"].forEach((s) => {
+          document.getElementById(s + "-section").classList.add("hidden");
+        });
+        document
+          .getElementById(section + "-section")
+          .classList.remove("hidden");
+      }
 
-<h2 class="font-bold mb-4">Add Product</h2>
+      // ✅ FIXED LOGOUT
+      function logout() {
+        localStorage.clear();
+        window.location.replace("login.html"); // FIXED
+      }
 
-<input id="pname" placeholder="Name" class="border p-2 w-full mb-2">
-<input id="pprice" placeholder="Price" class="border p-2 w-full mb-2">
-<input id="pcategory" placeholder="Category" class="border p-2 w-full mb-2">
-<input id="pimage" placeholder="Image URL" class="border p-2 w-full mb-2">
-<input id="pstock" placeholder="Stock" class="border p-2 w-full mb-2">
+      // MODALS
+      function openModal() {
+        modal.classList.remove("hidden");
+      }
+      function closeModal() {
+        modal.classList.add("hidden");
+      }
 
-<input id="punit" placeholder="Unit (kg, litre, piece, pack)" class="border p-2 w-full mb-2">
+      function openOrderModal(data) {
+        orderModal.classList.remove("hidden");
 
-<div class="flex justify-between">
-<button onclick="addProduct()" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
-<button onclick="closeModal()" class="bg-gray-400 px-4 py-2 rounded">Cancel</button>
-</div>
+        let html = "";
+        data.items.forEach((i) => {
+          html += `<p>${i.name} x ${i.quantity}</p>`;
+        });
 
-</div>
-</div>
+        document.getElementById("orderDetails").innerHTML = html;
+      }
 
-<!-- ORDER DETAILS MODAL -->
-<div id="orderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-<div class="bg-white p-6 rounded w-96">
+      function closeOrderModal() {
+        orderModal.classList.add("hidden");
+      }
 
-<h2 class="font-bold mb-4">Order Details</h2>
+      // LOAD DATA
+      document.addEventListener("DOMContentLoaded", () => {
+        loadOrders();
+        loadProducts();
+      });
 
-<div id="orderDetails"></div>
+      // ORDERS
+      async function loadOrders() {
+        let orders = [];
+        try {
+          const res = await OrdersAPI.getAll();
+          orders = res?.data || [];
+        } catch (err) {
+          console.error("Failed to load orders:", err.message);
+        }
 
-<button onclick="closeOrderModal()" class="mt-4 bg-gray-400 px-4 py-2 rounded">Close</button>
+        const search = document
+          .getElementById("searchOrder")
+          .value.toLowerCase();
+        if (search) {
+          orders = orders.filter((o) => o._id.includes(search));
+        }
 
-</div>
-</div>
+        totalOrders.innerText = orders.length;
+        pendingOrders.innerText = orders.filter(
+          (o) => o.status === "pending",
+        ).length;
 
-<script src="js/api.js"></script>
-
-<script>
-
-// NAVIGATION
-function showSection(section){
-    ["dashboard","orders","products"].forEach(s=>{
-        document.getElementById(s+"-section").classList.add("hidden");
-    });
-    document.getElementById(section+"-section").classList.remove("hidden");
-}
-
-// ✅ FIXED LOGOUT
-function logout(){
-    localStorage.clear();
-    window.location.replace("login.html"); // FIXED
-}
-
-// MODALS
-function openModal(){ modal.classList.remove("hidden"); }
-function closeModal(){ modal.classList.add("hidden"); }
-
-function openOrderModal(data){
-    orderModal.classList.remove("hidden");
-
-    let html="";
-    data.items.forEach(i=>{
-        html+=`<p>${i.name} x ${i.quantity}</p>`;
-    });
-
-    document.getElementById("orderDetails").innerHTML = html;
-}
-
-function closeOrderModal(){
-    orderModal.classList.add("hidden");
-}
-
-// LOAD DATA
-document.addEventListener('DOMContentLoaded', ()=>{
-    loadOrders();
-    loadProducts();
-});
-
-// ORDERS
-async function loadOrders(){
-    const res = await OrdersAPI.getAll();
-    let orders = res?.data || [];
-
-    const search = document.getElementById("searchOrder").value.toLowerCase();
-    if(search){
-        orders = orders.filter(o=>o._id.includes(search));
-    }
-
-    totalOrders.innerText = orders.length;
-    pendingOrders.innerText = orders.filter(o=>o.status==="pending").length;
-
-    let html="";
-    orders.forEach(o=>{
-        html+=`
+        let html = "";
+        orders.forEach((o) => {
+          html += `
         <tr>
-            <td>${o._id.slice(0,6)}</td>
-            <td>${o.customerId?.name || 'User'}</td>
+            <td>${o._id.slice(0, 6)}</td>
+            <td>${o.customerId?.name || "User"}</td>
             <td>₹${o.totalAmount}</td>
             <td>
             <select onchange="updateStatus('${o._id}', this.value)"
 class="px-2 py-1 rounded ${
-    o.status==='pending'?'bg-yellow-100':
-    o.status==='preparing'?'bg-blue-100':
-    o.status==='ready'?'bg-green-100':
-    'bg-gray-200'
-}">
+            o.status === "pending"
+              ? "bg-yellow-100"
+              : o.status === "preparing"
+                ? "bg-blue-100"
+                : o.status === "ready"
+                  ? "bg-green-100"
+                  : "bg-gray-200"
+          }">
 
                 <option value="pending">Pending</option>
 <option value="preparing">Preparing</option>
@@ -211,21 +275,21 @@ class="px-2 py-1 rounded ${
                 class="text-blue-500">View</button>
             </td>
         </tr>`;
-    });
+        });
 
-    document.getElementById("orders-tbody").innerHTML = html;
-}
+        document.getElementById("orders-tbody").innerHTML = html;
+      }
 
-// PRODUCTS
-async function loadProducts(){
-    const res = await ProductsAPI.getAll();
-    const products = res.data || res;
+      // PRODUCTS
+      async function loadProducts() {
+        const res = await ProductsAPI.getAll();
+        const products = res.data || res;
 
-    totalProducts.innerText = products.length;
+        totalProducts.innerText = products.length;
 
-    let html="";
-    products.forEach(p=>{
-        html+=`
+        let html = "";
+        products.forEach((p) => {
+          html += `
         <div class="bg-white p-4 rounded shadow">
             <img 
               src="${p.imageURL}" 
@@ -233,37 +297,47 @@ async function loadProducts(){
               onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'"
             >
             <h3 class="font-bold">${p.name}</h3>
-            <p>₹${p.price} / ${p.unit || 'kg'}</p>
+            <p>₹${p.price} / ${p.unit || "kg"}</p>
 
             <button onclick="deleteProduct('${p._id}')" class="text-red-500 mt-2">Delete</button>
         </div>`;
-    });
+        });
 
-    document.getElementById("products-grid").innerHTML = html;
-}
+        document.getElementById("products-grid").innerHTML = html;
+      }
 
-// ADD PRODUCT
-async function addProduct(){
-    await ProductsAPI.create({
-        name:pname.value,
-        price:Number(pprice.value),
-        category:pcategory.value,
-        imageURL:pimage.value,
-        stockQuantity:Number(pstock.value),
-        unit: punit.value || "kg"
-    });
+      // ADD PRODUCT
+      async function addProduct() {
+        await ProductsAPI.create({
+          name: pname.value,
+          price: Number(pprice.value),
+          category: pcategory.value,
+          imageURL: pimage.value,
+          stockQuantity: Number(pstock.value),
+          unit: punit.value || "kg",
+        });
 
-    closeModal();
-    loadProducts();
-}
+        closeModal();
+        loadProducts();
+      }
 
-// DELETE PRODUCT
-async function deleteProduct(id){
-    await ProductsAPI.delete(id);
-    loadProducts();
-}
+      // DELETE PRODUCT
+      async function deleteProduct(id) {
+        if (!confirm("Delete this product?")) return;
+        await ProductsAPI.delete(id);
+        loadProducts();
+      }
 
-</script>
-
-</body>
+      // ✅ UPDATE ORDER STATUS (was missing — caused crash on dropdown change)
+      async function updateStatus(orderId, newStatus) {
+        try {
+          await OrdersAPI.updateStatus(orderId, newStatus);
+          // Reload to reflect the new status color
+          loadOrders();
+        } catch (err) {
+          alert("Failed to update status: " + err.message);
+        }
+      }
+    </script>
+  </body>
 </html>
