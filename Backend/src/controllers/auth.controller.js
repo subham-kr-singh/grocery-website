@@ -20,7 +20,7 @@ const sendTokenResponse = (res, statusCode, message, user, token) => {
   const cookieOptions = {
     httpOnly: true, // JS cannot access cookie
     secure: process.env.NODE_ENV === "production", // HTTPS only in production
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Prevent CSRF
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Allow cross-site in production
     maxAge: 24 * 60 * 60 * 1000, // 24 hours in ms
   };
 
@@ -182,7 +182,7 @@ const logout = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.status(200).json({

@@ -1,4 +1,10 @@
-const API_URL = 'http://localhost:5000/api';
+// Detect if we are running locally or in production
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// ⚠️ IMPORTANT: Replace this URL with your actual deployed backend URL (e.g., from Render/Heroku)
+const PRODUCTION_BACKEND_URL = 'https://grocery-website-ygj2.onrender.com';
+
+const API_URL = isLocalhost ? 'http://localhost:5000/api' : `${PRODUCTION_BACKEND_URL}/api`;
 
 // Helper to make fetch requests
 async function apiFetch(endpoint, options = {}) {
